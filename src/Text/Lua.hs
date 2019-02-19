@@ -37,14 +37,14 @@ data Statement = GlobalAssign [String] [Expression]
                deriving (Show)
 
 lexer :: TokenParser ()
-lexer = makeTokenParser (emptyDef {
-        commentStart = "--",
-        commentEnd = "\n",
-        identStart = letter,
-        identLetter = alphaNum,
-        opStart  = oneOf "+-*/%notadr",
-        opLetter = oneOf "+-*/%notadr",
-        reservedOpNames = ["and", "or"]
+lexer = makeTokenParser (emptyDef
+    { commentStart = "--"
+    , commentEnd = "\n"
+    , identStart = letter
+    , identLetter = alphaNum
+    , opStart  = oneOf "+-*/%notadr"
+    , opLetter = oneOf "+-*/%notadr"
+    , reservedOpNames = ["and", "or"]
     })
 
 parseComment :: Parser ()
