@@ -122,8 +122,22 @@ parseDoStatement = do
     reserved lexer "end"
     return $ DoStatement s
 
+parseNameList :: Parser [String]
+parseNameList = try $ (identifier lexer) `sepBy` (char ',' >> whiteSpace lexer) <|> count 1 (identifier lexer)
+
+parseExpressionList :: Parser [Expression]
+parseExpressionList = try $ parseExpression `sepBy` (char ',' >> whiteSpace lexer) <|> count 1 parseExpression
+
+parseLocalAssignStatement :: Parser Statement
+parseLocalAssignStatement = do
+    reserved lexer "local"
+    s <- parseNameList
+    e <- option [] $ whiteSpace lexer >> char '=' >> whiteSpace lexer >> parseExpressionList
+    return $ LocalAssign s e
+
 parseStatement = do
     s <- try parseIfStatement <|> try parseWhileStatement
+        <|> try parseLocalAssignStatement
     skipMany $ char ';'
     return s
 
