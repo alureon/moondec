@@ -1,10 +1,13 @@
-import System.Exit (exitFailure)
+import System.Exit (exitFailure, exitSuccess)
 import Text.Parsec
 import Text.Lua
 
 main = do
     c <- readFile "test.lua"
     case parse parseStatement "test.lua" c of
-        Left e -> print e
-        Right expr -> print expr
-    exitFailure
+        Left e -> do 
+            print e
+            exitFailure
+        Right expr -> do
+            print expr
+            exitSuccess
