@@ -4,5 +4,5 @@ if (1 == 1) then
     end
     while (true ~= true) do
     end
-    do end
+    test(1)
 end;

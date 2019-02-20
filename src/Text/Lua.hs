@@ -36,6 +36,7 @@ data Statement = GlobalAssign [String] [Expression]
                | IfStatement Expression [Statement]
                | WhileStatement Expression [Statement]
                | DoStatement [Statement]
+               | FunctionCallStat String [Expression]
                deriving (Show)
 
 lexer :: TokenParser ()
@@ -47,6 +48,7 @@ lexer = makeTokenParser (emptyDef
     , opStart  = oneOf "+-*/%notadr"
     , opLetter = oneOf "+-*/%notadr"
     , reservedOpNames = ["and", "or"]
+    , reservedNames = ["if", "then"]
     })
 
 parseComment :: Parser ()
@@ -142,6 +144,7 @@ parseLocalAssignStatement = do
 parseStatement = do
     s <- try parseIfStatement <|> try parseWhileStatement
         <|> try parseLocalAssignStatement <|> try parseDoStatement
+        <|> try parseFunctionCallStatement
     skipMany $ char ';'
     return s
 
@@ -153,16 +156,25 @@ parseArgs = a <|> b
         char '('
         e <- parseExpressionList
         char ')'
+        whiteSpace lexer
         return e
     b = do
         s <- stringLiteral lexer
+        whiteSpace lexer
         return $ [Str s]
 
+-- Both of these functions could be more compact
 parseFunctionCallExpr :: Parser Expression
 parseFunctionCallExpr = do
     n <- identifier lexer
     e <- parseArgs
     return $ FunctionCallExpr n e
+
+parseFunctionCallStatement :: Parser Statement
+parseFunctionCallStatement = do
+    n <- identifier lexer
+    e <- parseArgs
+    return $ FunctionCallStat n e
 
 parseTerm :: Parser Expression
 parseTerm = parens lexer parseExpression <|> parseNumber <|> parseBoolean
