@@ -7,6 +7,7 @@ import Text.Parsec.Expr
 import Text.Parsec.Language
 
 data Expression = Lit Double
+                | Str String
                 | Add Expression Expression
                 | Sub Expression Expression
                 | Mul Expression Expression
@@ -27,6 +28,7 @@ data Expression = Lit Double
                 | And Expression Expression
                 | Or Expression Expression
                 | Nil
+                | FunctionCallExpr String [Expression]
                 deriving (Show)
 
 data Statement = GlobalAssign [String] [Expression]
@@ -123,10 +125,12 @@ parseDoStatement = do
     return $ DoStatement s
 
 parseNameList :: Parser [String]
-parseNameList = try $ (identifier lexer) `sepBy` (char ',' >> whiteSpace lexer) <|> count 1 (identifier lexer)
+parseNameList = try $ (identifier lexer) `sepBy` (char ',' >> whiteSpace lexer)
+    <|> count 1 (identifier lexer)
 
 parseExpressionList :: Parser [Expression]
-parseExpressionList = try $ parseExpression `sepBy` (char ',' >> whiteSpace lexer) <|> count 1 parseExpression
+parseExpressionList = try $ parseExpression `sepBy` (char ',' >> whiteSpace lexer)
+    <|> count 1 parseExpression
 
 parseLocalAssignStatement :: Parser Statement
 parseLocalAssignStatement = do
@@ -137,11 +141,30 @@ parseLocalAssignStatement = do
 
 parseStatement = do
     s <- try parseIfStatement <|> try parseWhileStatement
-        <|> try parseLocalAssignStatement
+        <|> try parseLocalAssignStatement <|> try parseDoStatement
     skipMany $ char ';'
     return s
 
+-- Missing single table argument parsing
+parseArgs :: Parser [Expression]
+parseArgs = a <|> b
+    where
+    a = do
+        char '('
+        e <- parseExpressionList
+        char ')'
+        return e
+    b = do
+        s <- stringLiteral lexer
+        return $ [Str s]
+
+parseFunctionCallExpr :: Parser Expression
+parseFunctionCallExpr = do
+    n <- identifier lexer
+    e <- parseArgs
+    return $ FunctionCallExpr n e
+
 parseTerm :: Parser Expression
 parseTerm = parens lexer parseExpression <|> parseNumber <|> parseBoolean
-    <|> parseNil
+    <|> parseNil <|> parseFunctionCallExpr
 
