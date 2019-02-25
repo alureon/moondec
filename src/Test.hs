@@ -1,6 +1,7 @@
 import System.Exit (exitFailure, exitSuccess)
 import Text.Parsec
 import Text.Lua
+import MoonDec
 
 main = do
     c <- readFile "test.lua"
@@ -8,6 +9,8 @@ main = do
         Left e -> do 
             print e
             exitFailure
-        Right expr -> do
-            print expr
+        Right stat -> do
+            print stat
+            print $ decompile stat
+            -- print $ runWriter $ decompileTest stat
             exitSuccess
