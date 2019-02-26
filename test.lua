@@ -1,4 +1,3 @@
 do
-    local a = 1
-    lol()
+    local a = 'abcd'
 end

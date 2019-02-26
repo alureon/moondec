@@ -37,6 +37,7 @@ data Statement = GlobalAssign [String] [Expression]
                | WhileStatement Expression [Statement]
                | DoStatement [Statement]
                | FunctionCallStat String [Expression]
+               | Return [Expression]
                deriving (Show)
 
 lexer :: TokenParser ()
@@ -58,7 +59,7 @@ parseComment = do
     endOfLine
     return ()
 
-parseNumber, parseBoolean, parseNil :: Parser Expression
+parseNumber, parseBoolean, parseNil, parseStringLit :: Parser Expression
 
 parseNumber = do
     v <- naturalOrFloat lexer
@@ -76,6 +77,13 @@ parseBoolean = do
 parseNil = do
     reserved lexer "nil"
     return Nil
+
+parseStringLit = do
+    q <- char '"' <|> char '\''
+    s <- many $ noneOf [q]
+    char q
+    whiteSpace lexer
+    return $ Str s
 
 makeExprParser = flip buildExpressionParser
 
@@ -178,5 +186,5 @@ parseFunctionCallStatement = do
 
 parseTerm :: Parser Expression
 parseTerm = parens lexer parseExpression <|> parseNumber <|> parseBoolean
-    <|> parseNil <|> parseFunctionCallExpr
+    <|> parseNil <|> parseStringLit <|> parseFunctionCallExpr
 

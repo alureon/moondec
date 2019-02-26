@@ -10,7 +10,7 @@ main = do
             print e
             exitFailure
         Right stat -> do
-            print stat
-            print $ decompile stat
+            -- print stat
+            putStrLn $ decompile stat
             -- print $ runWriter $ decompileTest stat
             exitSuccess
