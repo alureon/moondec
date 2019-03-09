@@ -37,7 +37,7 @@ data Statement = GlobalAssign [String] [Expression]
                | WhileStatement Expression [Statement]
                | DoStatement [Statement]
                | FunctionCallStat String [Expression]
-               | Return [Expression]
+               | ReturnStatement [Expression]
                deriving (Show)
 
 lexer :: TokenParser ()
@@ -110,7 +110,7 @@ parseExpression = makeExprParser parseTerm $ [
     ]
 
 parseStatement, parseIfStatement, parseDoStatement,
-    parseWhileStatement :: Parser Statement
+    parseWhileStatement, parseReturnStatement :: Parser Statement
 
 parseIfStatement = do
     reserved lexer "if"
@@ -133,6 +133,11 @@ parseDoStatement = do
     s <- many parseStatement
     reserved lexer "end"
     return $ DoStatement s
+
+parseReturnStatement = do
+    reserved lexer "return"
+    s <- parseExpressionList
+    return $ ReturnStatement s
 
 parseNameList :: Parser [String]
 parseNameList = try $ (identifier lexer) `sepBy` (char ',' >> whiteSpace lexer)
